@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html xmlns:th="http://thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <meta charset="UTF-8">
+    <title>Animal Shelter</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+</head>
+<section layout:fragment="body">
+    <body>
+
+    <!-- Page content-->
+    <div class="container">
+        <div th:if="${param.success}" class="alert alert-success">
+            You are registered successfully!
+        </div>
+        <div class="text-center mt-5">
+            <h1>Animal Shelter</h1>
+            <p>Here is the list of animals available for adoption:</p>
+
+            <!-- "Add New Animal" Button -->
+            <div class="mb-4">
+                <a href="/animals/new" class="btn btn-primary">Add New Animal</a>
+            </div>
+
+            <!-- Filter & Search -->
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <input id="searchBox" class="form-control" type="text" placeholder="Search animals...">
+                </div>
+                <div class="col-md-4">
+                    <select id="speciesFilter" class="form-control">
+                        <option value="">Filter by Species</option>
+                        <option value="Dog">Dog</option>
+                        <option value="Cat">Cat</option>
+                        <option value="Bird">Bird</option>
+                        <option value="Bird">Reptile</option>
+                        <option value="Bird">Rodents</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Table for displaying the list of animals -->
+            <table class="table table-striped mt-4" id="animalsTable">
+                <thead>
+                <tr>
+                    <th scope="col" onclick="sortTable(0)">ID ⬍</th>
+                    <th scope="col" onclick="sortTable(1)">Name ⬍</th>
+                    <th scope="col" onclick="sortTable(2)">Gender ⬍</th>
+                    <th scope="col" onclick="sortTable(3)">Species ⬍</th>
+                    <th scope="col" onclick="sortTable(4)">Age ⬍</th>
+                    <th scope="col">Actions</th>
+                </tr>
+                </thead>
+                <tbody id="animalsBody">
+                <!-- Iterate through the list of animals -->
+                <tr th:each="animal : ${animals}">
+                    <td th:text="${animal.id}"></td>
+                    <td th:text="${animal.name}"></td>
+                    <td th:text="${animal.gender}"></td>
+                    <td th:text="${animal.species}"></td>
+                    <td th:text="${animal.age}"></td>
+                    <td>
+                        <a th:href="@{/animals/{animalId}/edit(animalId=${animal.id})}" class="btn btn-sm btn-warning">Edit</a>
+                        <a th:href="@{/animals/{animalId}/delete(animalId=${animal.id})}"
+                           class="btn btn-sm btn-danger"
+                           onclick="return confirm('Are you sure you want to delete this animal?');">
+                            Delete
+                        </a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Sorting & Filtering Script -->
+    <script>
+        // Sorting function
+        function sortTable(columnIndex) {
+            let table = document.getElementById("animalsTable");
+            let tbody = table.querySelector("tbody");
+            let rows = Array.from(tbody.querySelectorAll("tr"));
+            let isAscending = table.rows[0].cells[columnIndex].getAttribute("data-order") === "asc";
+
+            rows.sort((rowA, rowB) => {
+                let cellA = rowA.cells[columnIndex].innerText.trim();
+                let cellB = rowB.cells[columnIndex].innerText.trim();
+
+                if (!isNaN(cellA) && !isNaN(cellB)) {
+                    return isAscending ? cellA - cellB : cellB - cellA;
+                }
+                return isAscending ? cellA.localeCompare(cellB) : cellB.localeCompare(cellA);
+            });
+
+            rows.forEach(row => tbody.appendChild(row));
+
+            // Alternate row colors to maintain Bootstrap's striped effect
+            rows.forEach((row, index) => {
+                row.classList.toggle("table-light", index % 2 === 0);
+                row.classList.toggle("table-gray", index % 2 !== 0);
+            });
+
+            table.rows[0].cells[columnIndex].setAttribute("data-order", isAscending ? "desc" : "asc");
+        }
+
+        // Filtering function
+        $(document).ready(function () {
+            $("#searchBox").on("keyup", function () {
+                let value = $(this).val().toLowerCase();
+                $("#animalsBody tr").filter(function () {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+                });
+            });
+
+            $("#speciesFilter").on("change", function () {
+                let value = $(this).val().toLowerCase();
+                $("#animalsBody tr").filter(function () {
+                    let species = $(this).find("td:nth-child(4)").text().toLowerCase();
+                    $(this).toggle(value === "" || species === value);
+                });
+            });
+        });
+    </script>
+
+    <!-- Bootstrap core JS-->
+
+    </body>
+</section>
+</html>
